@@ -1,0 +1,118 @@
+CORRELATED SUBQUERIES — SOLUTIONS
+
+1. Find salespeople whose sales amount is higher than the average sales amount of all other salespeople.
+
+SELECT s1.Name, s1.Sales_Amt
+FROM Salesperson s1
+WHERE s1.Sales_Amt > (
+    SELECT AVG(s2.Sales_Amt)
+    FROM Salesperson s2
+    WHERE s2.empno <> s1.empno
+);
+
+2. List products whose rate is higher than the average rate of products with the same quantity.
+
+SELECT p1.Name, p1.rate, p1.qty
+FROM Products p1
+WHERE p1.rate > (
+    SELECT AVG(p2.rate)
+    FROM Products p2
+    WHERE p2.qty = p1.qty
+);
+
+3. Find orders where the order amount is higher than the average order amount for that product.
+
+SELECT o1.*
+FROM Orders o1
+WHERE o1.Amt > (
+    SELECT AVG(o2.Amt)
+    FROM Orders o2
+    WHERE o2.sid = o1.sid
+);
+
+4. List salespeople who made orders with an amount greater than their average order amount.
+
+SELECT DISTINCT s.Name
+FROM Salesperson s
+JOIN Orders o1 ON s.empno = o1.empno
+WHERE o1.Amt > (
+    SELECT AVG(o2.Amt)
+    FROM Orders o2
+    WHERE o2.empno = o1.empno
+);
+
+5. Find products where the quantity is less than the average quantity of products with the same rate.
+
+SELECT p1.*
+FROM Products p1
+WHERE p1.qty < (
+    SELECT AVG(p2.qty)
+    FROM Products p2
+    WHERE p2.rate = p1.rate
+);
+
+6. List orders where the amount is equal to the product rate.
+
+SELECT o.*
+FROM Orders o
+WHERE o.Amt = (
+    SELECT p.rate
+    FROM Products p
+    WHERE p.sid = o.sid
+);
+
+7. Find salespeople whose total sales amount is greater than the total sales of other salespeople in the same region.
+⚠️ Assumes Salesperson table has a region column.
+
+SELECT s1.Name, s1.empno
+FROM Salesperson s1
+WHERE (
+    SELECT SUM(o1.Amt)
+    FROM Orders o1
+    WHERE o1.empno = s1.empno
+) > ALL (
+    SELECT SUM(o2.Amt)
+    FROM Orders o2
+    JOIN Salesperson s2 ON o2.empno = s2.empno
+    WHERE s2.region = s1.region AND s2.empno <> s1.empno
+    GROUP BY s2.empno
+);
+
+8. List products where the rate is higher than the average rate of all products ordered by the same salesperson.
+
+SELECT DISTINCT p1.Name, p1.rate
+FROM Products p1
+JOIN Orders o1 ON p1.sid = o1.sid
+WHERE p1.rate > (
+    SELECT AVG(p2.rate)
+    FROM Orders o2
+    JOIN Products p2 ON o2.sid = p2.sid
+    WHERE o2.empno = o1.empno
+);
+
+9. Find orders where the order amount is greater than the average order amount of that salesperson.
+
+SELECT o1.*
+FROM Orders o1
+WHERE o1.Amt > (
+    SELECT AVG(o2.Amt)
+    FROM Orders o2
+    WHERE o2.empno = o1.empno
+);
+
+10. List salespeople who have made more orders than the average number of orders made by all salespeople.
+
+SELECT s.empno, s.Name
+FROM Salesperson s
+WHERE (
+    SELECT COUNT(*)
+    FROM Orders o
+    WHERE o.empno = s.empno
+) > (
+    SELECT AVG(order_count)
+    FROM (
+        SELECT empno, COUNT(*) AS order_count
+        FROM Orders
+        GROUP BY empno
+    ) AS sub
+);
