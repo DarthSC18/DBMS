@@ -1,0 +1,126 @@
+CREATE TABLE Products(sid int Primary Key, name varchar(30), qty int, rate Int);
+
+CREATE TABLE Salesperson(empno int Primary Key, Name varchar(30), Sales_Amt int);
+
+
+CREATE TABLE ORDERS(pid int Primary Key, sid Int Foreign Key References Products, empno Int Foreign Key References Salesperson, Amt Int);
+
+
+INSERT INTO Products Values(01, ‘Fan’, 10, 5000), (02, ‘TV’, 15, 50000),(03, ‘AC’, 10, 50000),(04, ‘Phone’, 10, 60000),(05, ‘Charger’, 10, 2000),(06, ‘Earphones’, 10,2000 );
+
+
+INSERT INTO Salesperson Values(10, 'Shivam',  50000), (20, 'Dwayne', 50000),(30, 'Gladwin', 60000),(40, 'Liza', 50000),(50, 'Aditya', 60000),(60, 'Roman', 2000),(70, 'Junaid', 2000),(80, 'Logan', 2000),(90, 'Daniel', 100000);
+
+INSERT INTO Products VALUES
+(01, 'an', 10, 5000),
+(02, 'TV', 15, 50000),
+(03, 'AC', 10, 50000),
+(04, 'Phone', 10, 60000),
+(05, 'Charger', 10, 2000),
+(06, 'Earphones', 10, 2000);
+
+
+insert into Orders Values(11, 02,10 , 50000),(12, 03,10 , 50000),(13, 05,80 , 2000),(14, 04,90 , 50000),(15, 04,40 , 50000),(16, 06,80 , 50000),(17, 02,20 , 50000),(18, 04,30 , 60000),(19, 04,50 , 2000),(21, 06,70 , 50000),(22, 04,40 , 50000),(16, 06,80 , 50000) ;
+
+Select S.Name, from Orders O, Salesperson S, where S.empno=O.empno
+insert into Orders Values(17, 02,20 , 50000),(18, 04,30 , 60000),(19, 04,50 , 2000),(21, 06,70 , 50000),(22, 04,40 , 50000),(16, 06,80 , 50000) ;
+
+Select* from Orders WHERE Amt>20000
+
+Select P.name, S.name from Products P, Salesperson S, Orders O
+WHERE P.sid=O.sid and O.emno=S.empno;
+
+Select P.name, S.name from Products P, Salesperson S, Orders O
+WHERE P.sid=O.sid and O.empno=S.empno and P.sid=04;
+
+Select P.name, P.rate from Products P, Orders O
+WHERE P.sid=O.sid ;
+Select P.name, S.name from Orders O
+JOIN Products P on O.sid=P.sid and 
+JOIN Salesperson S on S.empno=O.empno;
+Select P.name, S.name From Orders O
+JOIN Products P on O.sid=P.sid
+JOIN Salesperson S on S.empno=O.empno
+WHERE P.sid=04;
+Select P.name, P.rate from Products P
+JOIN Orders O on P.sid=O.sid ;
+Select * From Products P
+Left JOIN Orders O on P.sid=o.sid;
+
+Select Name from Salesperson where
+Empno in(Select empno from Orders where Amt>50000);
+
+Select Name from Products where Pid in 
+(Select Pid from Orders)
+Select Name from Salesperson where empno not in
+(Select empno from Orders)
+
+Select Name, max(Amt) from Salesperson where empno in(Select empno in Orders);
+Select Name, Rate from Products Where Rate>(Select AVG(Rate from Products);
+Select * from Orders O
+JOIN Products P on P.sid=O.sid
+WHERE P.rate=O.amt;
+
+
+Select Name,qty from Products WHERE qty in (Select MIN(qty) from Products);
+Select * From Orders WHERE amt =(Select MAX(Amt) from Orders);
+
+Select Name, Sales_Amt From Salesperson WHERE Sales_Amt =(Select MAX(Sales_Amt) from Salesperson);
+
+Select Name, qty from Products Where qty>(Select AVG(qty) from Products);
+
+Select P.Name, (SELECT Count(*) from Orders O where O.sid=P.sid ) From Products P;
+
+
+CREATE TRIGGER trigger_name
+{BEFORE | AFTER} {INSERT | UPDATE | DELETE}
+ON table_name
+FOR EACH ROW
+BEGIN
+   -- SQL statements to execute
+END;
+
+Select s1.Name, s1.Sales_amt From Salesperson s1 WHERE s1.Sales_amt>(Select Avg(s2.sales_amt) from sales s2 where S2.empnot<>s1.empno);
+
+
+Create TRIGGER T1 on Orders After INSERT AS
+Begin
+Update o 
+Set o.amt=i.qty*p.rate 
+From Orders o, Products p, inserted i
+WHERE p.sid=o.sid and p.sid=i.sid;
+Update p
+Set p.qty=p.qty-i.qty
+From Products p, inserted i
+Where p.sid=i.sid;
+Update s
+Set s.Sales_amt=s.Sales_amt+i.amt
+From Salesperson s, inserted i
+Where s.empno=i.empno;
+END;
+
+Create Trigger T2 on orders after Delete as 
+Begin
+Update p
+Set p.qty=p.qty+d.qty
+From products p, deleted d
+Where p.sid=d.sid;
+Update s
+Set s.Sales_amt=s.Sales_amt-d.amt
+From Salesperson s, Deleted d
+Where s.empno=d.empno;
+END;
+
+
+/* Q10 - Display the number of books written by each author, ordered by the count
+in descending order */
+select a.Name, count(ba.AuthorID) 'Books_Written'
+	from Author a, BookAuthor ba
+	where a.AuthorID = ba.AuthorID
+	group by a.AuthorID,a.Name
+	order by count(ba.AuthorID) desc
+Select b.title, count(
+
+Select b.Title, a.Name From Book B
+ join BookAuthor ba where b.isbn=ba.isbn
+Join Author a where a.aid=ba.bid;
