@@ -1,0 +1,123 @@
+Triggers
+
+1️⃣ Create Tables
+
+-- Products Table
+CREATE TABLE Products (
+    sid INT PRIMARY KEY,
+    name VARCHAR(50),
+    rate INT,
+    qty INT
+);
+
+-- Salesperson Table
+CREATE TABLE Salesperson (
+    empno INT PRIMARY KEY,
+    name VARCHAR(50),
+    Sales_amt INT DEFAULT 0
+);
+
+-- Orders Table
+CREATE TABLE Orders (
+    pid INT PRIMARY KEY,
+    sid INT,
+    empno INT,
+    qty INT,
+    amt INT
+);
+
+2️⃣ Insert Initial Data
+
+-- Products
+INSERT INTO Products VALUES
+(1, 'TV', 50000, 10),
+(2, 'AC', 30000, 20),
+(3, 'Phone', 20000, 30);
+
+-- Salespeople
+INSERT INTO Salesperson VALUES
+(101, 'Shivam', 0),
+(102, 'Liza', 0),
+(103, 'Dwayne', 0);
+
+3️⃣ Create Trigger: AFTER INSERT on Orders
+
+CREATE TRIGGER T1
+ON Orders
+AFTER INSERT
+AS
+BEGIN
+    -- 1. Update order amount (amt = qty * rate)
+    UPDATE o
+    SET o.amt = i.qty * p.rate
+    FROM Orders o
+    JOIN inserted i ON o.pid = i.pid
+    JOIN Products p ON p.sid = i.sid;
+
+    -- 2. Decrease product quantity
+    UPDATE p
+    SET p.qty = p.qty - i.qty
+    FROM Products p
+    JOIN inserted i ON p.sid = i.sid;
+
+    -- 3. Increase salesperson's sales amount
+    UPDATE s
+    SET s.Sales_amt = s.Sales_amt + i.amt
+    FROM Salesperson s
+    JOIN inserted i ON s.empno = i.empno;
+END;
+
+4️⃣ Create Trigger: AFTER DELETE on Orders
+
+CREATE TRIGGER T2
+ON Orders
+AFTER DELETE
+AS
+BEGIN
+    -- 1. Restore product quantity
+    UPDATE p
+    SET p.qty = p.qty + d.qty
+    FROM Products p
+    JOIN deleted d ON p.sid = d.sid;
+
+    -- 2. Reduce salesperson's sales amount
+    UPDATE s
+    SET s.Sales_amt = s.Sales_amt - d.amt
+    FROM Salesperson s
+    JOIN deleted d ON s.empno = d.empno;
+END;
+
+5️⃣ Test the Triggers
+✅ Insert an Order (Triggers T1)
+
+-- Insert a new order: Shivam sells 2 TVs
+INSERT INTO Orders (pid, sid, empno, qty, amt)
+VALUES (201, 1, 101, 2, 0);  -- amt will be calculated by trigger
+🔍 Check the result
+
+SELECT * FROM Products;
+SELECT * FROM Salesperson;
+SELECT * FROM Orders;
+You should see:
+* TV quantity reduced by 2
+* Shivam's Sales_amt increased by 2 * 50000 = 100000
+* amt field in Orders updated
+
+❌ Delete the Order (Triggers T2)
+
+DELETE FROM Orders WHERE pid = 201;
+🔍 Check again:
+
+SELECT * FROM Products;
+SELECT * FROM Salesperson;
+SELECT * FROM Orders;
+You should see:
+* TV quantity restored back
+* Shivam's Sales_amt decreased by 100000
+* Order removed
+
+✅ Summary
+Action	Result
+INSERT INTO Orders	Triggers T1: updates amount, reduces product qty, adds to sales amount
+DELETE FROM Orders	Triggers T2: restores product qty, reduces sales amount
+Would you like a downloadable SQL script with all of this together? Or do you want to try custom logic (like BEFORE INSERT or error validation)?
